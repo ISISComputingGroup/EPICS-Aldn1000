@@ -1,18 +1,79 @@
-getIDN {
-    out "*IDN?";
-    in "%\$1[^\r\n]";
-    ExtraInput = Ignore;
+InTerminator = ETX;
+OutTerminator = CR;
+
+target_id = "%(\$1\$2)02d";
+response_id = "%*2d";
+
+ignored_status = " %*{I|W|S|P|T|U}";
+rate_units = "{UM|MM|UH|MH}";
+directions = "{INF|WDR}";
+
+getDiameter {
+    out "%(\$1\$2)02d DIA";
+    in STX "%*2d %f";
 }
 
-cmd {
-    out "\$1";
+setDiameter {
+    out "%(\$1\$2)02d DIA %4.3f";
+    in STX $response_id $ignored_status;
 }
 
-setD {
-    out "\$1 %d";
+getVolume {
+    out "%(\$1\$2)02d VOL";
+    in STX "%*2d %f";
 }
-getD {
-    out "\$1?";
-    in "%d";
-    ExtraInput = Ignore;
+
+setVolume {
+    out "%(\$1\$2)02d VOL %4.3f";
+    in STX $response_id $ignored_status;
+}
+
+getDirection {
+    out "%(\$1\$2)02d DIR";
+    in STX "%*2d %{INF|WDR}";
+}
+
+setDirection {
+    out "%(\$1\$2)02d DIR %{INF|WDR|REV}";
+    in STX $response_id $ignored_status;
+}
+
+getRate {
+    out "%(\$1\$2)02d RAT";
+    in STX "%*2d %f %(\$1\$3){UM|MM|UH|MH}";
+}
+
+setRate {
+    out "%(\$1\$2)02d RAT %f %(\$1\$3){UM|MM|UH|MH}";
+    in STX $response_id $ignored_status;
+}
+
+getVolumeDispensed {
+    out "%(\$1\$2)02d DIS";
+    in STX "%*2d I %(\$1\$3)f W %(\$1\$4)f";
+}
+
+clearVolumeInfused {
+    out "%(\$1\$2)02d CLD INF";
+    in STX $response_id $ignored_status;
+}
+
+clearVolumeWithdrawn {
+    out "%(\$1\$2)02d CLD WDR";
+    in STX $response_id $ignored_status;
+}
+
+getStatus {
+    out "%(\$1\$2)02d ";
+    in STX "%*2d %{I|W|S|P|T|U}";
+}
+
+getProgFunc {
+    out "%(\$1\$2)02d FUN";
+    in STX "%*2d RAT";
+}
+
+setPump {
+    out "%(\$1\$2)02d %{STP|RUN}";
+    in STX $response_id $ignored_status;
 }

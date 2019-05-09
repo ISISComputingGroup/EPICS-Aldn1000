@@ -17,3 +17,204 @@ record(bo, "$(P)DISABLE")
     field(ZNAM, "COMMS ENABLED")
     field(ONAM, "COMMS DISABLED")
 }
+
+record(ai, "$(P)ID")
+{
+    field(DESC, "Device identification number")
+    field(DTYP, "Soft Channel")
+    field(SCAN, "Passive")
+    field(VAL, "1")
+}
+
+record(ao, "$(P)ID:SP")
+{
+    field(DESC, "Sets the device identification number")
+    field(DTYP, "Soft Channel")
+}
+
+alias("$(P)ID", "$(P)ID:SP:RBV")
+
+record(ai, "$(P)DIAMETER")
+{
+    field(DESC, "Diameter of syringe")
+    field(DTYP, "stream")
+    field(SCAN, "1 second")
+    
+    field(INP, "@aldn1000.proto getDiameter($(P),ID) $(PORT)")
+    
+    field(EGU, "mm")
+}
+
+record(ao, "$(P)DIAMETER:SP")
+{
+    field(DESC, "Diameter of syringe set point")
+    field(DTYP, "stream")
+    
+    field(OUT, "@aldn1000.proto setDiameter($(P),ID) $(PORT)")
+    field(EGU, "mm")
+}
+
+alias("$(P)DIAMETER", "$(P)DIAMETER:SP:RBV")
+
+record(ai, "$(P)VOLUME")
+{
+    field(DESC, "Volume to be dispensed")
+    field(DTYP, "stream")
+    field(SCAN, "1 second")
+    
+    field(INP, "@aldn1000.proto getVolume($(P),ID) $(PORT)")
+}
+
+record(ao, "$(P)VOLUME:SP")
+{
+    field(DESC, "Set volume to be dispensed")
+    field(DTYP, "stream")
+    
+    field(OUT, "@aldn1000.proto setVolume($(P),ID) $(PORT)")
+}
+
+alias("$(P)VOLUME", "$(P)VOLUME:SP:RBV")
+
+record(mbbi, "$(P)DIRECTION")
+{
+    field(DESC, "Pumping direction")
+    field(DTYP, "stream")
+    field(SCAN, "1 second")
+    
+    field(INP, "@aldn1000.proto getDirection($(P),ID) $(PORT)")
+    
+    field(ZRST, "INF")
+    field(ONST, "WDR")
+}
+
+record(mbbo, "$(P)DIRECTION:SP")
+{
+    field(DESC, "Set pumping direction")
+    field(DTYP, "stream")
+    
+    field(OUT, "@aldn1000.proto setDirection($(P),ID) $(PORT)")
+    
+    field(ZRST, "INF") # Infuse
+    field(ONST, "WDR") # Withdraw
+    field(TWST, "REV") # Reverse current
+}
+
+alias("$(P)DIRECTION", "$(P)DIRECTION:SP:RBV")
+
+record(ai, "$(P)RATE")
+{
+    field(DESC, "Pumping rate")
+    field(DTYP, "stream")
+    field(SCAN, "1 second")
+    
+    field(INP, "@aldn1000.proto getRate($(P),ID,RATE:UNITS) $(PORT)")
+}
+
+record(ao, "$(P)RATE:SP")
+{
+    field(DESC, "Set pumping rate")
+    field(DTYP, "stream")
+    
+    field(OUT, "@aldn1000.proto setRate($(P),ID,RATE:UNITS:SP) $(PORT)")
+}
+
+alias("$(P)RATE", "$(P)RATE:SP:RBV")
+
+record(mbbi, "$(P)RATE:UNITS")
+{
+    field(DESC, "Sets the pumping rate units")
+    field(ZRST, "UM") # uL/min
+    field(ONST, "MM") # mL/min
+    field(TWST, "UH") # uL/hr
+    field(THST, "MH") # mL/hr
+}
+
+record(mbbo, "$(P)RATE:UNITS:SP")
+{
+    field(DESC, "Sets the pumping rate units")
+    field(ZRST, "UM") # uL/min
+    field(ONST, "MM") # mL/min
+    field(TWST, "UH") # uL/hr
+    field(THST, "MH") # mL/hr
+}
+
+alias("$(P)RATE:UNITS", "$(P)RATE:UNITS:SP:RBV")
+
+record(ai, "$(P)VOLUME:DISPENSED")
+{
+    field(DESC, "Gets infusion/withdrawn volumes")
+    field(DTYP, "stream")
+    field(SCAN, "1 second")
+    
+    field(INP, "@aldn1000.proto getVolumeDispensed($(P),ID,VOLUME:INF,VOLUME:WDR) $(PORT)")
+}
+
+record(ai, "$(P)VOLUME:WDR")
+{
+    field(DESC, "Withdrawn volume dispensed")
+}
+
+record(ai, "$(P)VOLUME:INF")
+{
+    field(DESC, "Infusion volume dispensed")
+}
+
+record(bo, "$(P)VOLUME:INF:CLEAR:SP")
+{
+    field(DESC, "Set infused volume dispensed to 0.0")
+    field(DTYP, "stream")
+    
+    field(OUT, "@aldn1000.proto clearVolumeInfused($(P),ID) $(PORT)")
+    
+    field(ZNAM, "")
+    field(ONAM, "CLEAR")
+}
+
+record(bo, "$(P)VOLUME:WDR:CLEAR:SP")
+{
+    field(DESC, "Set withdrawn volume dispensed to 0.0")
+    field(DTYP, "stream")
+    
+    field(OUT, "@aldn1000.proto clearVolumeWithdrawn($(P),ID) $(PORT)")
+    
+    field(ZNAM, "")
+    field(ONAM, "CLEAR")
+}
+
+record(mbbi, "STATUS")
+{
+    field(DESC, "Status of device")
+    field(DTYP, "stream")
+    field(SCAN, "1 second")
+    
+    field(INP, "@aldn1000.proto getStatus($(P),ID) $(PORT)")
+    
+    field(ZRST, "Infusing")
+    field(ONST, "Withdrawing")
+    field(TWST, "Pumping Program Stopped")
+    field(THST, "Pumping Program Paused")
+    field(FRST, "Pause Phase")
+    field(FVST, "User wait")
+}
+
+record(ai, "$(P)PROGRAM:FUNCTION")
+{
+    field(DESC, "Pumping Program Phase's function")
+    field(DTYP, "stream")
+    field(SCAN, "1 second")
+    
+    field(INP, "@aldn1000.proto getProgFunc($(P),ID) $(PORT)")
+}
+
+record(bo, "$(P)PUMP:SP")
+{
+    field(DESC, "Start/stop the pump")
+    field(DTYP, "stream")
+    
+    field(OUT, "@aldn1000.proto setPump($(P),ID) $(PORT)")
+    
+    field(ONAM, "STOP")
+    field(ONAM, "START")
+}
+
+alias("$(P)PUMP:SP", "$(P)PUMP")
