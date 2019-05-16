@@ -1,79 +1,114 @@
+# WPI Aladdin-1000 Syringe pump proto (requires aldn1000.db)
+
+# NB: Device requires specific float formatting (1000.-0.000) so analog input set points are converted to strings
+#     then formatted using a string format converter in the proto file.
+
 InTerminator = ETX;
 OutTerminator = CR;
 
-target_id = "%(\$1\$2)02d";
-response_id = "%*2d";
+command_errors = "{?NA=2|?OOR=3|?COM=4|?IGN=5|?=1}";
+id = "02d"; # device address (00-99)
+status_modes = "{I|W|S|P|T|U|A?R|A?S|A?T|A?E|A?O}";
 
-ignored_status = " %*{I|W|S|P|T|U}";
 rate_units = "{UM|MM|UH|MH}";
-directions = "{INF|WDR}";
+volume_units = "{UL|ML}";
+directions = "{INF|WDR|REV}";
 
-getDiameter {
-    out "%(\$1\$2)02d DIA";
-    in STX "%*2d %f";
-}
-
-setDiameter {
-    out "%(\$1\$2)02d DIA %4.3f";
-    in STX $response_id $ignored_status;
-}
-
-getVolume {
-    out "%(\$1\$2)02d VOL";
-    in STX "%*2d %f";
-}
-
-setVolume {
-    out "%(\$1\$2)02d VOL %4.3f";
-    in STX $response_id $ignored_status;
-}
-
-getDirection {
-    out "%(\$1\$2)02d DIR";
-    in STX "%*2d %{INF|WDR}";
-}
-
-setDirection {
-    out "%(\$1\$2)02d DIR %{INF|WDR|REV}";
-    in STX $response_id $ignored_status;
-}
-
-getRate {
-    out "%(\$1\$2)02d RAT";
-    in STX "%*2d %f %(\$1\$3){UM|MM|UH|MH}";
-}
-
-setRate {
-    out "%(\$1\$2)02d RAT %f %(\$1\$3){UM|MM|UH|MH}";
-    in STX $response_id $ignored_status;
-}
-
-getVolumeDispensed {
-    out "%(\$1\$2)02d DIS";
-    in STX "%*2d I %(\$1\$3)f W %(\$1\$4)f";
-}
-
-clearVolumeInfused {
-    out "%(\$1\$2)02d CLD INF";
-    in STX $response_id $ignored_status;
-}
-
-clearVolumeWithdrawn {
-    out "%(\$1\$2)02d CLD WDR";
-    in STX $response_id $ignored_status;
+# Catch input errors (standard response + ? + error code) and pass to the ERROR record.
+mismatch_catcher {
+    in STX "%*" $id "%*" $status_modes "%(\$1\$3)#" $command_errors;
 }
 
 getStatus {
-    out "%(\$1\$2)02d ";
-    in STX "%*2d %{I|W|S|P|T|U}";
+    out "%(\$1\$2)" $id;
+    in STX "%*2d%" $status_modes;
+    @mismatch { mismatch_catcher; }
+}
+
+run {
+    out "%(\$1\$2)" $id "RUN";
+    in STX "%*" $id "%*" $status_modes;
+    @mismatch { mismatch_catcher; }
+}
+
+stop {
+    out "%(\$1\$2)" $id "STP";
+    in STX "%*" $id "%*" $status_modes;
+    @mismatch { mismatch_catcher; }
+}
+
+getVolume {
+    out "%(\$1\$2)" $id "VOL";
+    in STX "%*" $id "%*" $status_modes "%f" "%(\$1\$4)" $volume_units;
+    @mismatch { mismatch_catcher; }
+}
+
+setVolume {
+    out "%(\$1\$2)" $id "VOL" "%.5s";
+    in STX "%*" $id "%*" $status_modes;
+    @mismatch { mismatch_catcher; }
+    @init { out "%(\$1\$2)" $id "VOL"; in STX "%*" $id "%*" $status_modes "%(\$1\$4)f" "%*" $volume_units; }
+}
+
+getDiameter {
+    out "%(\$1\$2)" $id "DIA";
+    in STX "%*" $id "%*" $status_modes "%f";
+    @mismatch { mismatch_catcher; }
+}
+
+setDiameter {
+    out "%(\$1\$2)" $id "DIA" "%.5s";
+    in STX "%*" $id "%*" $status_modes;
+    @mismatch { mismatch_catcher; }
+    @init { out "%(\$1\$2)" $id "DIA"; in STX "%*" $id "%*" $status_modes "%(\$1\$4)f"; } 
+}
+
+getRate {
+    out "%(\$1\$2)" $id "RAT";
+    in STX "%*" $id "%*" $status_modes "%f" "%(\$1\$4)" $rate_units ;
+    @mismatch { mismatch_catcher; }
+}
+
+setRate {
+    out "%(\$1\$2)" $id "RAT" "%.5s" "%(\$1\$5)" $rate_units;
+    in STX "%*" $id "%*" $status_modes;
+    @mismatch { mismatch_catcher; }
+    @init { out "%(\$1\$2)" $id "RAT"; in STX "%*" $id "%*" $status_modes "%(\$1\$4)f" "%(\$1\$5)" $rate_units }
+}
+
+getDirection {
+    out "%(\$1\$2)" $id "DIR";
+    in STX "%*" $id "%*" $status_modes "%" $directions;
+    @mismatch { mismatch_catcher; }
+}
+
+setDirection {
+    out "%(\$1\$2)" $id "DIR" "%" $directions;
+    in STX "%*" $id "%*" $status_modes;
+    @mismatch { mismatch_catcher; }
+    @init { out "%(\$1\$2)" $id "DIR"; in STX "%*" $id "%*" $status_modes "%" $directions; }
+}
+
+getVolumeDispensed {
+    out "%(\$1\$2)" $id "DIS";
+    in STX "%*" $id "%*" $status_modes "I%(\$1\$4)f" "W%(\$1\$5)f" "%*" $volume_units;
+    @mismatch { mismatch_catcher; }
+}
+
+clearVolumeInfused {
+    out "%(\$1\$2)" $id "CLDINF";
+    in STX "%*" $id "%*" $status_modes;
+    @mismatch { mismatch_catcher; }
+}
+
+clearVolumeWithdrawn {
+    out "%(\$1\$2)" $id "CLDWDR";
+    in STX "%*" $id "%*" $status_modes;
+    @mismatch { mismatch_catcher; }
 }
 
 getProgFunc {
-    out "%(\$1\$2)02d FUN";
-    in STX "%*2d RAT";
-}
-
-setPump {
-    out "%(\$1\$2)02d %{STP|RUN}";
-    in STX $response_id $ignored_status;
+    out "%(\$1\$2)" $id "FUN";
+    in STX "%*" $id "%*" $status_modes "%{RAT|INC|DEC}";
+    @mismatch { mismatch_catcher; }
 }

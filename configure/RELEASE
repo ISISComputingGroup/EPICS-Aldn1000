@@ -3,3 +3,4 @@
 
 include $(TOP)/../../../ISIS_CONFIG
 -include $(TOP)/../../../ISIS_CONFIG.$(EPICS_HOST_ARCH)
+UTILITIES=$(SUPPORT)/utilities/master

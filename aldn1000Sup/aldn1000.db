@@ -1,3 +1,8 @@
+# WPI Aladdin-1000 Syringe pump db (requires aldn1000.proto)
+
+# NB: Device requires specific float formatting (1000.-0.000) so analog input set points are converted to strings
+#     then formatted using a string format converter in the proto file.
+
 record(bo, "$(P)SIM")
 {
     field(SCAN, "Passive")
@@ -18,176 +23,39 @@ record(bo, "$(P)DISABLE")
     field(ONAM, "COMMS DISABLED")
 }
 
-record(ai, "$(P)ID")
-{
-    field(DESC, "Device identification number")
-    field(DTYP, "Soft Channel")
+record(mbbi, "$(P)ERROR"){
     field(SCAN, "Passive")
-    field(VAL, "1")
-}
-
-record(ao, "$(P)ID:SP")
-{
-    field(DESC, "Sets the device identification number")
+    field(DESC, "Last error triggered by a set.")
     field(DTYP, "Soft Channel")
+    field(PINI, "YES")
+
+    field(VAL, "0")
+
+    field(ZRVL, "0")
+    field(ONVL, "1")
+    field(TWVL, "2")
+    field(THVL, "3")
+    field(FRVL, "4")
+    field(FVVL, "5")
+
+    field(ZRST, "No error")
+    field(ONST, "Command not recognized")
+    field(TWST, "Command N/A currently")
+    field(THST, "Command data out of range")
+    field(FRST, "Invalid COM packet")
+    field(FVST, "Ignored")
+
+    info(archive, "VAL")
 }
 
-alias("$(P)ID", "$(P)ID:SP:RBV")
-
-record(ai, "$(P)DIAMETER")
-{
-    field(DESC, "Diameter of syringe")
-    field(DTYP, "stream")
-    field(SCAN, "1 second")
-    
-    field(INP, "@aldn1000.proto getDiameter($(P),ID) $(PORT)")
-    
-    field(EGU, "mm")
-}
-
-record(ao, "$(P)DIAMETER:SP")
-{
-    field(DESC, "Diameter of syringe set point")
-    field(DTYP, "stream")
-    
-    field(OUT, "@aldn1000.proto setDiameter($(P),ID) $(PORT)")
-    field(EGU, "mm")
-}
-
-alias("$(P)DIAMETER", "$(P)DIAMETER:SP:RBV")
-
-record(ai, "$(P)VOLUME")
-{
-    field(DESC, "Volume to be dispensed")
-    field(DTYP, "stream")
-    field(SCAN, "1 second")
-    
-    field(INP, "@aldn1000.proto getVolume($(P),ID) $(PORT)")
-}
-
-record(ao, "$(P)VOLUME:SP")
-{
-    field(DESC, "Set volume to be dispensed")
-    field(DTYP, "stream")
-    
-    field(OUT, "@aldn1000.proto setVolume($(P),ID) $(PORT)")
-}
-
-alias("$(P)VOLUME", "$(P)VOLUME:SP:RBV")
-
-record(mbbi, "$(P)DIRECTION")
-{
-    field(DESC, "Pumping direction")
-    field(DTYP, "stream")
-    field(SCAN, "1 second")
-    
-    field(INP, "@aldn1000.proto getDirection($(P),ID) $(PORT)")
-    
-    field(ZRST, "INF")
-    field(ONST, "WDR")
-}
-
-record(mbbo, "$(P)DIRECTION:SP")
-{
-    field(DESC, "Set pumping direction")
-    field(DTYP, "stream")
-    
-    field(OUT, "@aldn1000.proto setDirection($(P),ID) $(PORT)")
-    
-    field(ZRST, "INF") # Infuse
-    field(ONST, "WDR") # Withdraw
-    field(TWST, "REV") # Reverse current
-}
-
-alias("$(P)DIRECTION", "$(P)DIRECTION:SP:RBV")
-
-record(ai, "$(P)RATE")
-{
-    field(DESC, "Pumping rate")
-    field(DTYP, "stream")
-    field(SCAN, "1 second")
-    
-    field(INP, "@aldn1000.proto getRate($(P),ID,RATE:UNITS) $(PORT)")
-}
-
-record(ao, "$(P)RATE:SP")
-{
-    field(DESC, "Set pumping rate")
-    field(DTYP, "stream")
-    
-    field(OUT, "@aldn1000.proto setRate($(P),ID,RATE:UNITS:SP) $(PORT)")
-}
-
-alias("$(P)RATE", "$(P)RATE:SP:RBV")
-
-record(mbbi, "$(P)RATE:UNITS")
-{
-    field(DESC, "Sets the pumping rate units")
-    field(ZRST, "UM") # uL/min
-    field(ONST, "MM") # mL/min
-    field(TWST, "UH") # uL/hr
-    field(THST, "MH") # mL/hr
-}
-
-record(mbbo, "$(P)RATE:UNITS:SP")
-{
-    field(DESC, "Sets the pumping rate units")
-    field(ZRST, "UM") # uL/min
-    field(ONST, "MM") # mL/min
-    field(TWST, "UH") # uL/hr
-    field(THST, "MH") # mL/hr
-}
-
-alias("$(P)RATE:UNITS", "$(P)RATE:UNITS:SP:RBV")
-
-record(ai, "$(P)VOLUME:DISPENSED")
-{
-    field(DESC, "Gets infusion/withdrawn volumes")
-    field(DTYP, "stream")
-    field(SCAN, "1 second")
-    
-    field(INP, "@aldn1000.proto getVolumeDispensed($(P),ID,VOLUME:INF,VOLUME:WDR) $(PORT)")
-}
-
-record(ai, "$(P)VOLUME:WDR")
-{
-    field(DESC, "Withdrawn volume dispensed")
-}
-
-record(ai, "$(P)VOLUME:INF")
-{
-    field(DESC, "Infusion volume dispensed")
-}
-
-record(bo, "$(P)VOLUME:INF:CLEAR:SP")
-{
-    field(DESC, "Set infused volume dispensed to 0.0")
-    field(DTYP, "stream")
-    
-    field(OUT, "@aldn1000.proto clearVolumeInfused($(P),ID) $(PORT)")
-    
-    field(ZNAM, "")
-    field(ONAM, "CLEAR")
-}
-
-record(bo, "$(P)VOLUME:WDR:CLEAR:SP")
-{
-    field(DESC, "Set withdrawn volume dispensed to 0.0")
-    field(DTYP, "stream")
-    
-    field(OUT, "@aldn1000.proto clearVolumeWithdrawn($(P),ID) $(PORT)")
-    
-    field(ZNAM, "")
-    field(ONAM, "CLEAR")
-}
-
-record(mbbi, "STATUS")
+record(mbbi, "$(P)STATUS")
 {
     field(DESC, "Status of device")
     field(DTYP, "stream")
     field(SCAN, "1 second")
+    field(PINI, "YES")
     
-    field(INP, "@aldn1000.proto getStatus($(P),ID) $(PORT)")
+    field(INP, "@aldn1000.proto getStatus($(P),ID,ERROR) $(PORT)")
     
     field(ZRST, "Infusing")
     field(ONST, "Withdrawing")
@@ -195,26 +63,477 @@ record(mbbi, "STATUS")
     field(THST, "Pumping Program Paused")
     field(FRST, "Pause Phase")
     field(FVST, "User wait")
+    
+    field(SXST, "Pump reset")
+    field(SXSV, "MAJOR")
+    field(SVST, "Pump motor stalled")
+    field(SVSV, "MAJOR")
+    field(EIST, "Safe mode timeout")
+    field(EISV, "MAJOR")
+    field(NIST, "Pump Program error")
+    field(NISV, "MAJOR")
+    field(TEST, "Pump Program Phase OOR") # Out of range
+    field(TESV, "MAJOR")
+
+    info(INTEREST, "HIGH")
+    field(SIML, "$(P)SIM")
+    field(SIOL, "$(P)SIM:STATUS")
+    field(SDIS, "$(P)DISABLE")
+
+    info(archive, "VAL")
 }
 
-record(ai, "$(P)PROGRAM:FUNCTION")
+record(bo, "$(P)RUN:SP")
+{
+    field(DESC, "Starts the pump.")
+    field(SCAN, "Passive")
+    field(DTYP, "stream")
+
+    field(OUT,  "@aldn1000.proto run($(P),ID,ERROR) $(PORT)")
+    
+    field(ZNAM, "")
+    field(ONAM, "Run")
+    
+    info(INTEREST, "HIGH")
+    field(SIML, "$(P)SIM")
+    field(SIOL, "$(P)SIM:RUN:SP")
+    field(SDIS, "$(P)DISABLE")
+}
+
+record(bo, "$(P)STOP:SP")
+{
+    field(DESC, "Stops the pump.")
+    field(SCAN, "Passive")
+    field(DTYP, "stream")
+
+    field(OUT,  "@aldn1000.proto stop($(P),ID,ERROR) $(PORT)")
+
+    field(ZNAM, "")
+    field(ONAM, "Stop")
+
+    info(INTEREST, "HIGH")
+    field(SIML, "$(P)SIM")
+    field(SIOL, "$(P)SIM:STOP:SP")
+    field(SDIS, "$(P)DISABLE")
+}
+
+record(ai, "$(P)VOLUME")
+{
+    field(SCAN, "1 second")
+    field(DESC, "Volume to be dispensed")
+    field(DTYP, "stream")
+
+    field(INP, "@aldn1000.proto getVolume($(P),ID,ERROR,VOLUME:UNITS) $(PORT)")
+    
+    field(EGU, "")
+    field(PREC, "3")
+
+    info(INTEREST, "HIGH")
+    field(SIML, "$(P)SIM")
+    field(SIOL, "$(P)SIM:VOLUME")
+    field(SDIS, "$(P)DISABLE")
+}
+
+record(ao, "$(P)VOLUME:SP")
+{
+    field(DESC, "Set volume to be dispensed")
+    field(DTYP, "Soft Channel")
+
+    field(OUT, "$(P)_VOLUME:SP PP")
+
+    field(DRVH, "1000.")
+    field(DRVL, "0.000")
+    field(EGU, "")
+    field(PREC, "3")
+}
+
+alias("$(P)VOLUME", "$(P)VOLUME:SP:RBV")
+
+record(stringout, "$(P)_VOLUME:SP")
+{
+    field(DESC, "Convert output to string") # Device requires specific formatting
+    field(DTYP, "stream")
+
+    field(OUT, "@aldn1000.proto setVolume($(P),ID,ERROR,VOLUME:SP) $(PORT)")
+    field(SIML, "$(P)SIM")
+    field(SIOL, "$(P)SIM:_VOLUME:SP")
+    field(SDIS, "$(P)DISABLE")
+}
+
+record(mbbi, "$(P)VOLUME:UNITS")
+{
+    field(DESC, "Volume to be dispensed")
+    field(DTYP, "Soft Channel")
+
+    field(ZRVL, "0")
+    field(ONVL, "1")
+
+    field(ZRST, "uL")
+    field(ONST, "mL")
+
+    info(INTEREST, "HIGH")
+}
+
+record(ai, "$(P)ID")
+{
+    field(DESC, "Networked device address number")
+    field(DTYP, "Soft Channel")
+    field(SCAN, "Passive")
+    field(VAL, "0") # Device default address (00) for single pump set-up
+
+    info(INTEREST, "HIGH")
+}
+
+alias("$(P)ID", "$(P)ID:SP")
+alias("$(P)ID", "$(P)ID:SP:RBV")
+
+record(ai, "$(P)DIAMETER")
+{
+    field(DESC, "Diameter of syringe")
+    field(DTYP, "stream")
+    field(SCAN, "1 second")
+
+    field(INP, "@aldn1000.proto getDiameter($(P),ID,ERROR) $(PORT)")
+
+    field(PREC, "2")
+    field(EGU, "mm")
+
+    info(INTEREST, "HIGH")
+    field(SIML, "$(P)SIM")
+    field(SIOL, "$(P)SIM:DIAMETER")
+    field(SDIS, "$(P)DISABLE")
+}
+
+record(ao, "$(P)DIAMETER:SP")
+{
+    field(DESC, "Diameter of syringe set point")
+    field(DTYP, "Soft Channel")
+    
+    field(OUT, "$(P)_DIAMETER:SP PP")
+    field(DRVH, "1000.")
+    field(DRVL, "0.000")
+    field(PREC, "2")
+    field(EGU, "mm")
+}
+
+alias("$(P)DIAMETER", "$(P)DIAMETER:SP:RBV")
+
+record(stringout, "$(P)_DIAMETER:SP")
+{
+    field(DESC, "Convert output to string") # Device requires specific formatting
+    field(DTYP, "stream")
+
+    field(OUT, "@aldn1000.proto setDiameter($(P),ID,ERROR,DIAMETER:SP) $(PORT)")
+    field(SIML, "$(P)SIM")
+    field(SIOL, "$(P)SIM:_DIAMETER:SP")
+    field(SDIS, "$(P)DISABLE")
+}
+
+record(mbbi, "$(P)DIRECTION")
+{
+    field(DESC, "Pumping direction")
+    field(DTYP, "stream")
+    field(SCAN, "1 second")
+    
+    field(INP, "@aldn1000.proto getDirection($(P),ID,ERROR) $(PORT)")
+    
+    field(ZRST, "Infuse")
+    field(ONST, "Withdraw")
+    field(TWST, "Reverse")
+
+    info(INTEREST, "HIGH")
+    field(SIML, "$(P)SIM")
+    field(SIOL, "$(P)SIM:DIRECTION")
+    field(SDIS, "$(P)DISABLE")
+}
+
+record(mbbo, "$(P)DIRECTION:SP")
+{
+    field(DESC, "Set pumping direction")
+    field(DTYP, "stream")
+    field(SCAN, "Passive")
+    
+    field(OUT, "@aldn1000.proto setDirection($(P),ID,ERROR) $(PORT)")
+    
+    field(ZRST, "Infuse") # Infuse
+    field(ONST, "Withdraw") # Withdraw
+    field(TWST, "Reverse") # Reverse current
+    field(SIML, "$(P)SIM")
+    field(SIOL, "$(P)SIM:DIRECTION:SP")
+    field(SDIS, "$(P)DISABLE")
+}
+
+alias("$(P)DIRECTION", "$(P)DIRECTION:SP:RBV")
+
+
+
+record(ai, "$(P)RATE")
+{
+    field(DESC, "Pumping rate")
+    field(DTYP, "stream")
+    field(SCAN, "1 second")
+    
+    field(INP, "@aldn1000.proto getRate($(P),ID,ERROR,RATE:UNITS) $(PORT)")
+
+    field(PREC, "3")
+
+    info(INTEREST, "HIGH")
+    field(SIML, "$(P)SIM")
+    field(SIOL, "$(P)SIM:RATE")
+    field(SDIS, "$(P)DISABLE")
+
+    info(archive, "VAL")
+}
+
+record(ao, "$(P)RATE:SP")
+{
+    field(DESC, "Set pumping rate")
+    field(DTYP, "Soft Channel")
+    
+    field(OUT, "$(P)_RATE:SP PP")
+
+    field(DRVH, "1000.")
+    field(DRVL, "0.000")
+    field(PREC, "3")
+}
+
+alias("$(P)RATE", "$(P)RATE:SP:RBV")
+
+record(stringout, "$(P)_RATE:SP")
+{
+    field(DESC, "Convert output to string") # Device requires specific formatting
+    field(DTYP, "stream")
+
+    field(OUT, "@aldn1000.proto setRate($(P),ID,ERROR,RATE:SP,RATE:UNITS:SP) $(PORT)")
+    field(SIML, "$(P)SIM")
+    field(SIOL, "$(P)SIM:_RATE:SP")
+    field(SDIS, "$(P)DISABLE")
+}
+
+record(mbbi, "$(P)RATE:UNITS")
+{
+    field(DESC, "Sets the pumping rate units")
+    field(DTYP, "Soft Channel")
+
+    field(ZRVL, "0")
+    field(ONVL, "1")
+    field(TWVL, "2")
+    field(THVL, "3")
+
+    field(ZRST, "uL/min") # uL/min
+    field(ONST, "mL/min") # mL/min
+    field(TWST, "uL/hr") # uL/hr
+    field(THST, "mL/hr") # mL/hr
+
+    info(INTEREST, "HIGH")
+
+    info(archive, "VAL")
+}
+
+record(mbbo, "$(P)RATE:UNITS:SP")
+{
+    field(DESC, "Sets the pumping rate units")
+    field(DTYP, "Soft Channel")
+
+    field(ZRVL, "0")
+    field(ONVL, "1")
+    field(TWVL, "2")
+    field(THVL, "3")
+
+    field(ZRST, "uL/min") # uL/min
+    field(ONST, "mL/min") # mL/min
+    field(TWST, "uL/hr") # uL/hr
+    field(THST, "mL/hr") # mL/hr
+}
+
+alias("$(P)RATE:UNITS", "$(P)RATE:UNITS:SP:RBV")
+
+record(ai, "$(P)_VOLUME:DISPENSED")
+{
+    field(DESC, "Gets infusion/withdrawn volumes")
+    field(DTYP, "stream")
+    field(SCAN, "1 second")
+
+    field(INP, "@aldn1000.proto getVolumeDispensed($(P),ID,ERROR,VOLUME:INF,VOLUME:WDR) $(PORT)")
+
+    field(SIML, "$(P)SIM")
+    field(SIOL, "$(P)SIM:_VOLUME:DISPENSED")
+    field(SDIS, "$(P)DISABLE")
+}
+
+record(ai, "$(P)VOLUME:WDR")
+{
+    field(DESC, "Withdrawn volume dispensed")
+    field(DTYP, "Soft Channel")
+    field(PREC, "3")
+
+    info(INTEREST, "HIGH")
+
+    info(archive, "VAL")
+}
+
+record(ai, "$(P)VOLUME:INF")
+{
+    field(DESC, "Infusion volume dispensed")
+    field(DTYP, "Soft Channel")
+    field(PREC, "3")
+
+    info(INTEREST, "HIGH")
+
+    info(archive, "VAL")
+}
+
+record(bo, "$(P)VOLUME:INF:CLEAR:SP")
+{
+    field(DESC, "Set infused volume dispensed to 0.0")
+    field(DTYP, "stream")
+    field(VAL, "0")
+
+    field(OUT, "@aldn1000.proto clearVolumeInfused($(P),ID,ERROR) $(PORT)")
+    
+    field(ZNAM, "")
+    field(ONAM, "CLEAR")
+
+    info(INTEREST, "MEDIUM")
+    field(SIML, "$(P)SIM")
+    field(SIOL, "$(P)SIM:VOLUME:INF:CLEAR:SP")
+    field(SDIS, "$(P)DISABLE")
+}
+
+record(bo, "$(P)VOLUME:WDR:CLEAR:SP")
+{
+    field(DESC, "Set withdrawn volume dispensed to 0.0")
+    field(DTYP, "stream")
+    field(VAL, "0")
+
+    field(OUT, "@aldn1000.proto clearVolumeWithdrawn($(P),ID,ERROR) $(PORT)")
+    
+    field(ZNAM, "")
+    field(ONAM, "CLEAR")
+
+    info(INTEREST, "MEDIUM")
+    field(SIML, "$(P)SIM")
+    field(SIOL, "$(P)SIM:VOLUME:WDR:CLEAR:SP")
+    field(SDIS, "$(P)DISABLE")
+}
+
+record(mbbi, "$(P)PROGRAM:FUNCTION")
 {
     field(DESC, "Pumping Program Phase's function")
     field(DTYP, "stream")
     field(SCAN, "1 second")
-    
-    field(INP, "@aldn1000.proto getProgFunc($(P),ID) $(PORT)")
+
+    field(INP, "@aldn1000.proto getProgFunc($(P),ID,ERROR) $(PORT)")
+
+    field(ZRST, "RATE")
+    field(ONST, "INCR")
+    field(TWST, "DECR")
+
+    info(INTEREST, "MEDIUM")
+    field(SIML, "$(P)SIM")
+    field(SIOL, "$(P)SIM:PROGRAM:FUNCTION")
+    field(SDIS, "$(P)DISABLE")
 }
 
-record(bo, "$(P)PUMP:SP")
+### SIMULATION RECORDS ###
+
+record(bo,"$(P)SIM:STOP:SP")
 {
-    field(DESC, "Start/stop the pump")
-    field(DTYP, "stream")
-    
-    field(OUT, "@aldn1000.proto setPump($(P),ID) $(PORT)")
-    
-    field(ONAM, "STOP")
-    field(ONAM, "START")
+    field(SCAN, "Passive")
+    field(DTYP, "Soft Channel")
 }
 
-alias("$(P)PUMP:SP", "$(P)PUMP")
+record(bo,"$(P)SIM:VOLUME:WDR:CLEAR:SP")
+{
+    field(SCAN, "Passive")
+    field(DTYP, "Soft Channel")
+}
+
+record(ai,"$(P)SIM:VOLUME")
+{
+    field(SCAN, "Passive")
+    field(DTYP, "Soft Channel")
+}
+
+alias("$(P)SIM:VOLUME","$(P)SIM:VOLUME:SP")
+
+alias("$(P)SIM:VOLUME","$(P)SIM:VOLUME:SP:RBV")
+
+record(stringout,"$(P)SIM:_RATE:SP")
+{
+    field(SCAN, "Passive")
+    field(DTYP, "Soft Channel")
+}
+
+record(mbbi,"$(P)SIM:PROGRAM:FUNCTION")
+{
+    field(SCAN, "Passive")
+    field(DTYP, "Soft Channel")
+}
+
+record(stringout,"$(P)SIM:_DIAMETER:SP")
+{
+    field(SCAN, "Passive")
+    field(DTYP, "Soft Channel")
+}
+
+record(ai,"$(P)SIM:_VOLUME:DISPENSED")
+{
+    field(SCAN, "Passive")
+    field(DTYP, "Soft Channel")
+}
+
+record(ai,"$(P)SIM:DIAMETER")
+{
+    field(SCAN, "Passive")
+    field(DTYP, "Soft Channel")
+}
+
+alias("$(P)SIM:DIAMETER","$(P)SIM:DIAMETER:SP")
+
+alias("$(P)SIM:DIAMETER","$(P)SIM:DIAMETER:SP:RBV")
+
+record(stringout,"$(P)SIM:_VOLUME:SP")
+{
+    field(SCAN, "Passive")
+    field(DTYP, "Soft Channel")
+}
+
+record(mbbi,"$(P)SIM:STATUS")
+{
+    field(SCAN, "Passive")
+    field(DTYP, "Soft Channel")
+}
+
+record(ai,"$(P)SIM:RATE")
+{
+    field(SCAN, "Passive")
+    field(DTYP, "Soft Channel")
+}
+
+alias("$(P)SIM:RATE","$(P)SIM:RATE:SP")
+
+alias("$(P)SIM:RATE","$(P)SIM:RATE:SP:RBV")
+
+record(bo,"$(P)SIM:RUN:SP")
+{
+    field(SCAN, "Passive")
+    field(DTYP, "Soft Channel")
+}
+
+record(bo,"$(P)SIM:VOLUME:INF:CLEAR:SP")
+{
+    field(SCAN, "Passive")
+    field(DTYP, "Soft Channel")
+}
+
+record(mbbi,"$(P)SIM:DIRECTION")
+{
+    field(SCAN, "Passive")
+    field(DTYP, "Soft Channel")
+}
+
+alias("$(P)SIM:DIRECTION","$(P)SIM:DIRECTION:SP")
+
+alias("$(P)SIM:DIRECTION","$(P)SIM:DIRECTION:SP:RBV")
+
