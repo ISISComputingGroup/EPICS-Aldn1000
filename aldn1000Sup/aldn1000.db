@@ -181,6 +181,7 @@ record(ai, "$(P)ID")
     field(SCAN, "Passive")
     field(VAL, "0") # Device default address (00) for single pump set-up
 
+    field(EGU, "")
     info(INTEREST, "HIGH")
 }
 
@@ -210,6 +211,7 @@ record(ao, "$(P)DIAMETER:SP")
     field(DTYP, "Soft Channel")
     
     field(OUT, "$(P)_DIAMETER:SP PP")
+
     field(DRVH, "1000.")
     field(DRVL, "0.000")
     field(PREC, "2")
@@ -224,6 +226,7 @@ record(stringout, "$(P)_DIAMETER:SP")
     field(DTYP, "stream")
 
     field(OUT, "@aldn1000.proto setDiameter($(P),ID,ERROR,DIAMETER:SP) $(PORT)")
+
     field(SIML, "$(P)SIM")
     field(SIOL, "$(P)SIM:_DIAMETER:SP")
     field(SDIS, "$(P)DISABLE")
@@ -255,17 +258,16 @@ record(mbbo, "$(P)DIRECTION:SP")
     
     field(OUT, "@aldn1000.proto setDirection($(P),ID,ERROR) $(PORT)")
     
-    field(ZRST, "Infuse") # Infuse
-    field(ONST, "Withdraw") # Withdraw
-    field(TWST, "Reverse") # Reverse current
+    field(ZRST, "Infuse")
+    field(ONST, "Withdraw")
+    field(TWST, "Reverse")
+
     field(SIML, "$(P)SIM")
     field(SIOL, "$(P)SIM:DIRECTION:SP")
     field(SDIS, "$(P)DISABLE")
 }
 
 alias("$(P)DIRECTION", "$(P)DIRECTION:SP:RBV")
-
-
 
 record(ai, "$(P)RATE")
 {
@@ -275,6 +277,7 @@ record(ai, "$(P)RATE")
     
     field(INP, "@aldn1000.proto getRate($(P),ID,ERROR,RATE:UNITS) $(PORT)")
 
+    field(EGU, "")
     field(PREC, "3")
 
     info(INTEREST, "HIGH")
@@ -367,6 +370,7 @@ record(ai, "$(P)VOLUME:WDR")
     field(DTYP, "Soft Channel")
     field(PREC, "3")
 
+    field(EGU, "")
     info(INTEREST, "HIGH")
 
     info(archive, "VAL")
@@ -378,6 +382,7 @@ record(ai, "$(P)VOLUME:INF")
     field(DTYP, "Soft Channel")
     field(PREC, "3")
 
+    field(EGU, "")
     info(INTEREST, "HIGH")
 
     info(archive, "VAL")
