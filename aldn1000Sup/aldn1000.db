@@ -53,7 +53,7 @@ record(mbbi, "$(P)STATUS")
     field(DESC, "Status of device")
     field(DTYP, "stream")
     field(SCAN, "1 second")
-    field(PINI, "YES")
+    #field(PINI, "YES")
     
     field(INP, "@aldn1000.proto getStatus($(P),ID,ERROR) $(PORT)")
     

@@ -21,7 +21,7 @@ mismatch_catcher {
 
 getStatus {
     out "%(\$1\$2)" $id;
-    in STX "%*2d%" $status_modes;
+    in STX "%*" $id "%{I|W|S|P|T|U|A?R|A?S|A?T|A?E|A?O}";
     @mismatch { mismatch_catcher; }
 }
 
