@@ -7,7 +7,7 @@ InTerminator = ETX;
 OutTerminator = CR;
 
 command_errors = "{?NA=2|?OOR=3|?COM=4|?IGN=5|?=1}";
-id = "02d"; # device address (00-99)
+id = "d"; # device address (00-99)
 status_modes = "{I|W|S|P|T|U|A?R|A?S|A?T|A?E|A?O}";
 
 rate_units = "{UM|MM|UH|MH}";
