@@ -448,6 +448,7 @@ record(bo, "$(P)_SET_BASIC_MODE")
     field(DTYP, "stream")
 
     field(OUT,  "@aldn1000.proto setBasicMode $(PORT)")
+#    field(OUT,  "@aldn1000.proto setBasicModeEx($(P),ID) $(PORT)")
     field(PINI, "YES")
 }
 
