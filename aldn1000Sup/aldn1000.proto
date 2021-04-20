@@ -112,3 +112,9 @@ getProgFunc {
     in STX "%*" $id "%*" $status_modes "%{RAT|INC|DEC}";
     @mismatch { mismatch_catcher; }
 }
+
+# change back from safe mode to basic mode
+setBasicMode {
+    OutTerminator = ETX;
+    out STX 0x08 "SAF0" 0x55 0x43;
+}
