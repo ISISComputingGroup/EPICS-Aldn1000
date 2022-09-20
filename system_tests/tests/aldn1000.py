@@ -194,9 +194,14 @@ class Aldn1000Tests(unittest.TestCase):
 
     @skip_if_recsim("Unable to use lewis backdoor in RECSIM")
     def test_GIVEN_device_not_connected_WHEN_get_error_THEN_alarm(self):
-        self._lewis.backdoor_set_on_device('connected', False)
-        self.ca.set_pv_value("STATUS.PROC", 1)
-        self.ca.assert_that_pv_alarm_is('STATUS', ChannelAccess.Alarms.INVALID, timeout=5)
+        self.ca.assert_that_pv_alarm_is('STATUS', ChannelAccess.Alarms.NONE, timeout=5)
+
+        with self._lewis.backdoor_simulate_disconnected_device():
+            self.ca.set_pv_value("STATUS.PROC", 1)
+            self.ca.assert_that_pv_alarm_is('STATUS', ChannelAccess.Alarms.INVALID, timeout=5)
+            
+        # Assert alarms clear on reconnection
+        self.ca.assert_that_pv_alarm_is('STATUS', ChannelAccess.Alarms.NONE, timeout=5)
 
     @skip_if_recsim("Requires emulator logic so not supported in RECSIM")
     def test_GIVEN_pump_infusing_WHEN_pump_on_THEN_infused_volume_dispensed_increases(self):
