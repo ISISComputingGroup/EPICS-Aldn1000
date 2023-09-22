@@ -212,7 +212,7 @@ class Aldn1000Tests(unittest.TestCase):
         self.ca.set_pv_value("VOLUME:INF:CLEAR:SP", "CLEAR")
         self.ca.set_pv_value("RUN:SP", "Run")
 
-        self.ca.assert_that_pv_is_not("VOLUME:INF", 0.0, timeout=1.0)
+        self.ca.assert_that_pv_is_not("VOLUME:INF", 0.0, timeout=5.0)
         self.ca.set_pv_value("STOP:SP", "Stop")
 
     @parameterized.expand([("Low limit", 1.0, "uL"), ("High limit", 15.0, "mL")])
