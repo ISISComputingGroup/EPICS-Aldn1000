@@ -6,6 +6,7 @@ from utils.channel_access import ChannelAccess
 from utils.ioc_launcher import get_default_ioc_dir
 from utils.test_modes import TestModes
 from utils.testing import get_running_lewis_and_ioc, skip_if_recsim
+from time import sleep
 
 
 DEVICE_PREFIX = "ALDN1000_01"
@@ -167,7 +168,9 @@ class Aldn1000Tests(unittest.TestCase):
         self.ca.assert_that_pv_is("STATUS", status_mode, timeout=2)
 
         self.ca.set_pv_value("STOP:SP", "Stop")
-
+        #The aladdin scans every 1 second, and seems to react slowly to emulator changes,
+        #tests weren't passing without this sleep
+        sleep(3)
         self.ca.assert_that_pv_is("STATUS", expected_status_mode)
 
     @skip_if_recsim("Unable to use lewis backdoor in RECSIM")
@@ -198,8 +201,11 @@ class Aldn1000Tests(unittest.TestCase):
 
         with self._lewis.backdoor_simulate_disconnected_device():
             self.ca.set_pv_value("STATUS.PROC", 1)
+            #The aladdin scans every 1 second, and seems to react slowly to emulator changes,
+            #tests weren't passing without this sleep
+            sleep(2) 
             self.ca.assert_that_pv_alarm_is('STATUS', ChannelAccess.Alarms.INVALID, timeout=5)
-            
+
         # Assert alarms clear on reconnection
         self.ca.assert_that_pv_alarm_is('STATUS', ChannelAccess.Alarms.NONE, timeout=5)
 
