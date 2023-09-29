@@ -32,6 +32,7 @@ class Aldn1000Tests(unittest.TestCase):
         self._lewis, self._ioc = get_running_lewis_and_ioc(DEVICE_NAME, DEVICE_PREFIX)
         self.ca = ChannelAccess(device_prefix=DEVICE_PREFIX, default_wait_time=0.0)
         self._lewis.backdoor_run_function_on_device("reset")
+        self.ca.assert_that_pv_is("STATUS", "Pumping Program Stopped")
 
     @parameterized.expand([('Value 1', 12.12), ('Value 2', 1.123), ('Value 3', 123.0)])
     @skip_if_recsim("Requires emulator logic so not supported in RECSIM")
@@ -161,8 +162,8 @@ class Aldn1000Tests(unittest.TestCase):
     def test_GIVEN_pump_on_WHEN_set_pump_off_THEN_pump_paused(self):
         status_mode = "Infusing"
         expected_status_mode = "Pumping Program Paused"
-        self.ca.set_pv_value("VOLUME:SP", 100.00)
-        self.ca.set_pv_value("DIRECTION:SP", "Infuse")
+        self.ca.set_pv_value("VOLUME:SP", 100.00, wait=True)
+        self.ca.set_pv_value("DIRECTION:SP", "Infuse", wait=True)
         self.ca.set_pv_value("RUN:SP", "Run")
         self.ca.assert_that_pv_is("STATUS", status_mode, timeout=2)
 

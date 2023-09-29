@@ -14,7 +14,8 @@ class InfusingState(State):
         device.volume_infused = self.originally_infused + device.volume_dispensed
 
     def on_exit(self, dt):
-        self._context.pump_on = "STP"
+        self._context.new_action = False # need to clear so do not trigger pause -> stop too
+        self._context._pump_on = False # we need to make sure we do not set new_action
 
 
 class WithdrawingState(State):
@@ -29,16 +30,18 @@ class WithdrawingState(State):
         device.volume_withdrawn = self.originally_withdrawn + device.volume_dispensed
 
     def on_exit(self, dt):
-        self._context.pump_on = "STP"
+        self._context.new_action = False # need to clear so do not trigger pause -> stop too
+        self._context._pump_on = False # we need to make sure we do not set new_action
 
 
 class PumpingProgramStoppedState(State):
-    pass
+    def on_entry(self, dt):
+        self._context.new_action = False # need to clear so do not trigger pause -> stop too
 
 
 class PumpingProgramPausedState(State):
     def on_entry(self, dt):
-        self._context.new_action = False
+        self._context.new_action = False # need to clear so do not trigger pause -> stop too
 
 
 class PausePhaseState(State):

@@ -2,6 +2,8 @@ from collections import OrderedDict
 from .states import InfusingState, WithdrawingState, PumpingProgramStoppedState, PumpingProgramPausedState, \
     PausePhaseState, UserWaitState
 from lewis.devices import StateMachineDevice
+from threading import RLock
+import functools
 
 states = OrderedDict([
     ('I', InfusingState()),
@@ -11,9 +13,20 @@ states = OrderedDict([
     ('T', PausePhaseState()),
     ('U', UserWaitState())])
 
+def lockmethod(method):
+    @functools.wraps(method)
+    def wrapper(*args, **kwargs):
+        with args[0]._lock:
+            return method(*args, **kwargs)
+    return wrapper
 
 class SimulatedAldn1000(StateMachineDevice):
 
+    def __init__(self):
+        self._lock = RLock()
+        super().__init__()
+    
+    @lockmethod
     def _initialize_data(self):
         """
         Initialize all of the device's attributes.
@@ -34,8 +47,9 @@ class SimulatedAldn1000(StateMachineDevice):
         self.rate = 0.0
         self.units = 'UM'
         self.volume_units = 'UL'
-        self.new_action = False
+        self._new_action = False
 
+    @lockmethod
     def clear_volume(self, volume_type):
         if volume_type == 'INF':
             self.volume_infused = 0.0
@@ -57,24 +71,37 @@ class SimulatedAldn1000(StateMachineDevice):
         return rate
 
     @property
+    @lockmethod
+    def new_action(self):
+        return self._new_action
+
+    @new_action.setter
+    @lockmethod
+    def new_action(self, yesno):
+        self._new_action = yesno
+
+    @property
+    @lockmethod
     def pump_on(self):
         return self._pump_on
 
     @pump_on.setter
+    @lockmethod
     def pump_on(self, action):
-        self.new_action = True  # Check used for On -> Paused / Paused -> Off state transition.
         if action == 'STP':
             self._pump_on = False
         elif action == 'RUN':
             self._pump_on = True
         else:
             print('An error occurred while trying to start/stop the pump')
+        self.new_action = True  # Check used for On -> Paused / Paused -> Off state transition.
 
     @property
     def diameter(self):
         return self._diameter
 
     @diameter.setter
+    @lockmethod
     def diameter(self, new_value):
         if new_value > 14.0:  # Device changes the volume units automatically based on the diameter set
             self.volume_units = 'ML'
@@ -87,6 +114,7 @@ class SimulatedAldn1000(StateMachineDevice):
         return self._direction
 
     @direction.setter
+    @lockmethod
     def direction(self, new_direction):
         if new_direction == 'REV':  # Reverse
             if self._direction == 'INF':  # Infuse
@@ -98,6 +126,7 @@ class SimulatedAldn1000(StateMachineDevice):
 
     def reset(self):
         self._initialize_data()
+        self._csm.reset()
 
     @property
     def state(self):
