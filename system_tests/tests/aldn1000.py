@@ -199,7 +199,10 @@ class Aldn1000Tests(unittest.TestCase):
 
         with self._lewis.backdoor_simulate_disconnected_device():
             self.ca.set_pv_value("STATUS.PROC", 1)
-            self.ca.assert_that_pv_alarm_is('STATUS', ChannelAccess.Alarms.INVALID, timeout=5)
+            # we need quite a big timeout on next check, the pump has a 1 second reply timeout
+            # so once disconnected DB may take a while to process previous commands
+            # before next status command can run             
+            self.ca.assert_that_pv_alarm_is('STATUS', ChannelAccess.Alarms.INVALID, timeout=30)
             
         # Assert alarms clear on reconnection
         self.ca.assert_that_pv_alarm_is('STATUS', ChannelAccess.Alarms.NONE, timeout=5)
