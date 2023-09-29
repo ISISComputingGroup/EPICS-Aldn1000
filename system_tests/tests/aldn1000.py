@@ -163,6 +163,7 @@ class Aldn1000Tests(unittest.TestCase):
     def test_GIVEN_pump_on_WHEN_set_pump_off_THEN_pump_paused(self):
         status_mode = "Infusing"
         expected_status_mode = "Pumping Program Paused"
+        # user wait=True to definitely make sure parameters set before Run 
         self.ca.set_pv_value("VOLUME:SP", 100.00, wait=True)
         self.ca.set_pv_value("DIRECTION:SP", "Infuse", wait=True)
         self.ca.set_pv_value("RUN:SP", "Run")
