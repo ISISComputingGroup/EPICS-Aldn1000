@@ -32,6 +32,7 @@ class Aldn1000Tests(unittest.TestCase):
         self._lewis, self._ioc = get_running_lewis_and_ioc(DEVICE_NAME, DEVICE_PREFIX)
         self.ca = ChannelAccess(device_prefix=DEVICE_PREFIX, default_wait_time=0.0)
         self._lewis.backdoor_run_function_on_device("reset")
+        # wait for reset to complete and Db to update
         self.ca.assert_that_pv_is("STATUS", "Pumping Program Stopped")
 
     @parameterized.expand([('Value 1', 12.12), ('Value 2', 1.123), ('Value 3', 123.0)])

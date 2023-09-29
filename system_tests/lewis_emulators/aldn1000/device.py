@@ -126,6 +126,7 @@ class SimulatedAldn1000(StateMachineDevice):
 
     def reset(self):
         self._initialize_data()
+        # make sure state machine returns to initial state
         self._csm.reset()
 
     @property
