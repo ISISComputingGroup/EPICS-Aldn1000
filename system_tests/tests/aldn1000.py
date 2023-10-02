@@ -3,10 +3,9 @@ import unittest
 from parameterized import parameterized
 
 from utils.channel_access import ChannelAccess
-from utils.ioc_launcher import get_default_ioc_dir
+from utils.ioc_launcher import get_default_ioc_dir, IOCRegister
 from utils.test_modes import TestModes
 from utils.testing import get_running_lewis_and_ioc, skip_if_recsim
-
 
 DEVICE_PREFIX = "ALDN1000_01"
 DEVICE_NAME = "aldn1000"
@@ -29,9 +28,12 @@ class Aldn1000Tests(unittest.TestCase):
     Tests for the Aldn1000 IOC.
     """
     def setUp(self):
-        self._lewis, self._ioc = get_running_lewis_and_ioc(DEVICE_NAME, DEVICE_PREFIX)
         self.ca = ChannelAccess(device_prefix=DEVICE_PREFIX, default_wait_time=0.0)
-        self._lewis.backdoor_run_function_on_device("reset")
+        if IOCRegister.uses_rec_sim:
+            self.ca.set_pv_value("SIM:STATUS", 2) # "Pumping Program Stopped"
+        else:
+            self._lewis, self._ioc = get_running_lewis_and_ioc(DEVICE_NAME, DEVICE_PREFIX)
+            self._lewis.backdoor_run_function_on_device("reset")
         # wait for reset to complete and Db to update
         self.ca.assert_that_pv_is("STATUS", "Pumping Program Stopped")
 
