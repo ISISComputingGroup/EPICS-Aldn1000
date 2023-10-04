@@ -3,10 +3,9 @@ import unittest
 from parameterized import parameterized
 
 from utils.channel_access import ChannelAccess
-from utils.ioc_launcher import get_default_ioc_dir
+from utils.ioc_launcher import get_default_ioc_dir, IOCRegister
 from utils.test_modes import TestModes
 from utils.testing import get_running_lewis_and_ioc, skip_if_recsim
-
 
 DEVICE_PREFIX = "ALDN1000_01"
 DEVICE_NAME = "aldn1000"
@@ -29,9 +28,14 @@ class Aldn1000Tests(unittest.TestCase):
     Tests for the Aldn1000 IOC.
     """
     def setUp(self):
-        self._lewis, self._ioc = get_running_lewis_and_ioc(DEVICE_NAME, DEVICE_PREFIX)
         self.ca = ChannelAccess(device_prefix=DEVICE_PREFIX, default_wait_time=0.0)
-        self._lewis.backdoor_run_function_on_device("reset")
+        if IOCRegister.uses_rec_sim:
+            self.ca.set_pv_value("SIM:STATUS", 2) # "Pumping Program Stopped"
+        else:
+            self._lewis, self._ioc = get_running_lewis_and_ioc(DEVICE_NAME, DEVICE_PREFIX)
+            self._lewis.backdoor_run_function_on_device("reset")
+        # wait for reset to complete and Db to update
+        self.ca.assert_that_pv_is("STATUS", "Pumping Program Stopped")
 
     @parameterized.expand([('Value 1', 12.12), ('Value 2', 1.123), ('Value 3', 123.0)])
     @skip_if_recsim("Requires emulator logic so not supported in RECSIM")
@@ -161,8 +165,9 @@ class Aldn1000Tests(unittest.TestCase):
     def test_GIVEN_pump_on_WHEN_set_pump_off_THEN_pump_paused(self):
         status_mode = "Infusing"
         expected_status_mode = "Pumping Program Paused"
-        self.ca.set_pv_value("VOLUME:SP", 100.00)
-        self.ca.set_pv_value("DIRECTION:SP", "Infuse")
+        # user wait=True to definitely make sure parameters set before Run 
+        self.ca.set_pv_value("VOLUME:SP", 100.00, wait=True)
+        self.ca.set_pv_value("DIRECTION:SP", "Infuse", wait=True)
         self.ca.set_pv_value("RUN:SP", "Run")
         self.ca.assert_that_pv_is("STATUS", status_mode, timeout=2)
 
@@ -198,7 +203,10 @@ class Aldn1000Tests(unittest.TestCase):
 
         with self._lewis.backdoor_simulate_disconnected_device():
             self.ca.set_pv_value("STATUS.PROC", 1)
-            self.ca.assert_that_pv_alarm_is('STATUS', ChannelAccess.Alarms.INVALID, timeout=5)
+            # we need quite a big timeout on next check, the pump has a 1 second reply timeout
+            # so once disconnected DB may take a while to process previous commands
+            # before next status command can run             
+            self.ca.assert_that_pv_alarm_is('STATUS', ChannelAccess.Alarms.INVALID, timeout=30)
             
         # Assert alarms clear on reconnection
         self.ca.assert_that_pv_alarm_is('STATUS', ChannelAccess.Alarms.NONE, timeout=5)
@@ -232,3 +240,12 @@ class Aldn1000Tests(unittest.TestCase):
 
         self.ca.assert_that_pv_is("RATE.EGU", expected_units)
 
+    @skip_if_recsim("Requires emulator")
+    def test_GIVEN_non_default_state_WHEN_setup_run_THEN_default_state_entered(self):
+        #We will assert that a state change occurred, before running reset, 
+        #To make sure the emulator will correct itself back to the default state.
+        self.ca.set_pv_value("VOLUME:SP", 10.00)
+        self.ca.set_pv_value("RUN:SP", "Run")
+        self.ca.assert_that_pv_is("STATUS", "Infusing")
+        self._lewis.backdoor_run_function_on_device("reset")
+        self.ca.assert_that_pv_is("STATUS", "Pumping Program Stopped")
