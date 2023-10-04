@@ -242,14 +242,10 @@ class Aldn1000Tests(unittest.TestCase):
 
     @skip_if_recsim("Requires emulator")
     def test_GIVEN_non_default_state_WHEN_setup_run_THEN_default_state_entered(self):
-        #Setting new action to True should trigger a state change in the emulator from Paused to Stopped, 
-        #We will then assert that this state change occurred, before running reset, 
+        #We will assert that a state change occurred, before running reset, 
         #To make sure the emulator will correct itself back to the default state.
-        self._lewis.backdoor_set_on_device("_new_action", True)
-
-        self.ca.assert_that_pv_is("STATUS", "Pumping Program Stopped")
-
+        self.ca.set_pv_value("VOLUME:SP", 10.00)
+        self.ca.set_pv_value("RUN:SP", "Run")
+        self.ca.assert_that_pv_is("STATUS", "Infusing")
         self._lewis.backdoor_run_function_on_device("reset")
-
-        self.ca.assert_that_pv_is("STATUS", "Pumping Program Paused")
-
+        self.ca.assert_that_pv_is("STATUS", "Pumping Program Stopped")
