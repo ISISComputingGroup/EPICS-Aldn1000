@@ -179,7 +179,7 @@ record(ai, "$(P)ID")
     field(DESC, "Networked device address number")
     field(DTYP, "Soft Channel")
     field(SCAN, "Passive")
-    field(VAL, "0") # Device default address (00) for single pump set-up
+    field(VAL, "$(ID=0)") # Device default address (00) for single pump set-up
 
     field(EGU, "")
     info(INTEREST, "HIGH")
