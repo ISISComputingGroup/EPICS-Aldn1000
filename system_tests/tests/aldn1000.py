@@ -26,58 +26,67 @@ class Aldn1000Tests(unittest.TestCase):
     """
     Tests for the Aldn1000 IOC.
     """
+
     def setUp(self):
         self.ca = ChannelAccess(device_prefix=DEVICE_PREFIX, default_wait_time=0.0)
         if IOCRegister.uses_rec_sim:
-            self.ca.set_pv_value("SIM:STATUS", 2) # "Pumping Program Stopped"
+            self.ca.set_pv_value("SIM:STATUS", 2)  # "Pumping Program Stopped"
         else:
             self._lewis, self._ioc = get_running_lewis_and_ioc(DEVICE_NAME, DEVICE_PREFIX)
             self._lewis.backdoor_run_function_on_device("reset")
         # wait for reset to complete and Db to update
         self.ca.assert_that_pv_is("STATUS", "Pumping Program Stopped")
 
-    @parameterized.expand([('Value 1', 12.12), ('Value 2', 1.123), ('Value 3', 123.0)])
+    @parameterized.expand([("Value 1", 12.12), ("Value 2", 1.123), ("Value 3", 123.0)])
     @skip_if_recsim("Requires emulator logic so not supported in RECSIM")
     def test_GIVEN_new_diameter_WHEN_set_diameter_THEN_new_diameter_set(self, _, value):
         self.ca.assert_setting_setpoint_sets_readback(value, "DIAMETER", timeout=2)
 
-    @parameterized.expand([('Value 1', 12345), ('Value 2', 1234), ('Value 3', 77424)])
+    @parameterized.expand([("Value 1", 12345), ("Value 2", 1234), ("Value 3", 77424)])
     @skip_if_recsim("Requires emulator logic so not supported in RECSIM")
-    def test_GIVEN_new_invalid_high_diameter_WHEN_set_diameter_THEN_diameter_set_limit_returned(self, _, value):
+    def test_GIVEN_new_invalid_high_diameter_WHEN_set_diameter_THEN_diameter_set_limit_returned(
+        self, _, value
+    ):
         invalid_diameter = value
         expected_diameter = 1000.00
         self.ca.set_pv_value("DIAMETER:SP", invalid_diameter)
 
         self.ca.assert_that_pv_is("DIAMETER", expected_diameter, timeout=2)
 
-    @parameterized.expand([('Value 1', -2345), ('Value 2', -1234), ('Value 3', -676424)])
+    @parameterized.expand([("Value 1", -2345), ("Value 2", -1234), ("Value 3", -676424)])
     @skip_if_recsim("Requires emulator logic so not supported in RECSIM")
-    def test_GIVEN_new_invalid_low_diameter_WHEN_set_diameter_THEN_diameter_set_limit_returned(self, _, value):
+    def test_GIVEN_new_invalid_low_diameter_WHEN_set_diameter_THEN_diameter_set_limit_returned(
+        self, _, value
+    ):
         invalid_diameter = value
         expected_diameter = 0.00
         self.ca.set_pv_value("DIAMETER:SP", invalid_diameter)
 
         self.ca.assert_that_pv_is("DIAMETER", expected_diameter, timeout=2)
 
-    @parameterized.expand([('Value 1', 14.1), ('Value 2', 24.23), ('Value 3', 30)])
+    @parameterized.expand([("Value 1", 14.1), ("Value 2", 24.23), ("Value 3", 30)])
     @skip_if_recsim("Requires emulator logic so not supported in RECSIM")
-    def test_GIVEN_new_diameter_above_14mm_WHEN_set_diameter_THEN_volume_units_changed(self, _, value):
+    def test_GIVEN_new_diameter_above_14mm_WHEN_set_diameter_THEN_volume_units_changed(
+        self, _, value
+    ):
         set_diameter = value
-        expected_units = 'mL'
+        expected_units = "mL"
         self.ca.set_pv_value("DIAMETER:SP", set_diameter)
 
         self.ca.assert_that_pv_is("VOLUME:UNITS", expected_units, timeout=2)
 
-    @parameterized.expand([('Value 1', 14.0), ('Value 2', 10.0), ('Value 3', 5.0)])
+    @parameterized.expand([("Value 1", 14.0), ("Value 2", 10.0), ("Value 3", 5.0)])
     @skip_if_recsim("Requires emulator logic so not supported in RECSIM")
-    def test_GIVEN_new_diameter_below_or_eq_14mm_WHEN_set_diameter_THEN_volume_units_changed(self, _, value):
+    def test_GIVEN_new_diameter_below_or_eq_14mm_WHEN_set_diameter_THEN_volume_units_changed(
+        self, _, value
+    ):
         set_diameter = value
-        expected_units = 'uL'
+        expected_units = "uL"
         self.ca.set_pv_value("DIAMETER:SP", set_diameter)
 
         self.ca.assert_that_pv_is("VOLUME:UNITS", expected_units, timeout=2)
 
-    @parameterized.expand([('Value 1', 0.123), ('Value 2', 1.342), ('Value 3', 12.34)])
+    @parameterized.expand([("Value 1", 0.123), ("Value 2", 1.342), ("Value 3", 12.34)])
     @skip_if_recsim("Requires emulator logic so not supported in RECSIM")
     def test_GIVEN_new_volume_WHEN_set_volume_THEN_new_volume_set(self, _, value):
         expected_volume = value
@@ -85,29 +94,29 @@ class Aldn1000Tests(unittest.TestCase):
 
         self.ca.assert_that_pv_is("VOLUME", expected_volume, timeout=2)
 
-    @parameterized.expand([('Direction 1', 'Withdraw'), ('Direction 2', 'Infuse')])
+    @parameterized.expand([("Direction 1", "Withdraw"), ("Direction 2", "Infuse")])
     def test_GIVEN_new_direction_WHEN_set_direction_THEN_new_direction_set(self, _, direction):
         self.ca.assert_setting_setpoint_sets_readback(direction, "DIRECTION")
 
-    @parameterized.expand([('Direction 1', 'Withdraw'), ('Direction 2', 'Infuse')])
+    @parameterized.expand([("Direction 1", "Withdraw"), ("Direction 2", "Infuse")])
     @skip_if_recsim("Requires emulator logic so not supported in RECSIM")
     def test_GIVEN_direction_WHEN_set_reverse_direction_THEN_direction_reversed(self, _, direction):
         initial_direction = direction
-        if initial_direction == 'Infuse':
-            expected_direction = 'Withdraw'
+        if initial_direction == "Infuse":
+            expected_direction = "Withdraw"
         else:
-            expected_direction = 'Infuse'
+            expected_direction = "Infuse"
         self.ca.assert_setting_setpoint_sets_readback(direction, "DIRECTION", timeout=2)
-        self.ca.set_pv_value("DIRECTION:SP", 'Reverse')
+        self.ca.set_pv_value("DIRECTION:SP", "Reverse")
 
         self.ca.assert_that_pv_is("DIRECTION", expected_direction, timeout=2)
 
-    @parameterized.expand([('Value 1', 0.123), ('Value 2', 1.342), ('Value 3', 12.34)])
+    @parameterized.expand([("Value 1", 0.123), ("Value 2", 1.342), ("Value 3", 12.34)])
     @skip_if_recsim("Requires emulator logic so not supported in RECSIM")
     def test_GIVEN_new_rate_WHEN_set_rate_THEN_new_rate_set(self, _, value):
         self.ca.assert_setting_setpoint_sets_readback(value, "RATE")
 
-    @parameterized.expand([('Value 1', 2123), ('Value 2', 1411.342), ('Value 3', 1222.34)])
+    @parameterized.expand([("Value 1", 2123), ("Value 2", 1411.342), ("Value 3", 1222.34)])
     @skip_if_recsim("Requires emulator logic so not supported in RECSIM")
     def test_GIVEN_new_invalid_high_rate_WHEN_set_rate_THEN_rate_high_limit_set(self, _, value):
         invalid_rate = value
@@ -116,7 +125,7 @@ class Aldn1000Tests(unittest.TestCase):
 
         self.ca.assert_that_pv_is("RATE", expected_rate)
 
-    @parameterized.expand([('Value 1', -9085), ('Value 2', -0.123342), ('Value 3', -5226.31234)])
+    @parameterized.expand([("Value 1", -9085), ("Value 2", -0.123342), ("Value 3", -5226.31234)])
     @skip_if_recsim("Requires emulator logic so not supported in RECSIM")
     def test_GIVEN_new_invalid_low_rate_WHEN_set_rate_THEN_rate_high_limit_set(self, _, value):
         invalid_rate = value
@@ -133,7 +142,9 @@ class Aldn1000Tests(unittest.TestCase):
         self.ca.assert_that_pv_is("VOLUME:INF", expected_infusion_volume, timeout=2)
 
     @skip_if_recsim("Unable to use lewis backdoor in RECSIM")
-    def test_GIVEN_infusion_volume_dispensed_WHEN_clear_infused_volume_dispensed_THEN_volume_cleared(self):
+    def test_GIVEN_infusion_volume_dispensed_WHEN_clear_infused_volume_dispensed_THEN_volume_cleared(
+        self,
+    ):
         infused_volume_dispensed = 2.342
         expected_volume_dispensed = 0.0
         self._lewis.backdoor_set_on_device("volume_infused", infused_volume_dispensed)
@@ -143,7 +154,9 @@ class Aldn1000Tests(unittest.TestCase):
         self.ca.assert_that_pv_is("VOLUME:INF", expected_volume_dispensed)
 
     @skip_if_recsim("Unable to use lewis backdoor in RECSIM")
-    def test_GIVEN_withdrawn_volume_dispensed_WHEN_clear_withdrawn_volume_dispensed_THEN_volume_cleared(self):
+    def test_GIVEN_withdrawn_volume_dispensed_WHEN_clear_withdrawn_volume_dispensed_THEN_volume_cleared(
+        self,
+    ):
         withdrawn_volume_dispensed = 93.12
         expected_volume_dispensed = 0.0
         self._lewis.backdoor_set_on_device("volume_withdrawn", withdrawn_volume_dispensed)
@@ -154,7 +167,7 @@ class Aldn1000Tests(unittest.TestCase):
 
     @skip_if_recsim("Requires emulator logic so not supported in RECSIM")
     def test_GIVEN_pump_off_WHEN_set_pump_on_THEN_pump_turned_on(self):
-        status_mode = 'Pumping Program Stopped'
+        status_mode = "Pumping Program Stopped"
         self.ca.set_pv_value("VOLUME:SP", 1.0)
         self.ca.set_pv_value("RUN:SP", "Run")
 
@@ -164,7 +177,7 @@ class Aldn1000Tests(unittest.TestCase):
     def test_GIVEN_pump_on_WHEN_set_pump_off_THEN_pump_paused(self):
         status_mode = "Infusing"
         expected_status_mode = "Pumping Program Paused"
-        # user wait=True to definitely make sure parameters set before Run 
+        # user wait=True to definitely make sure parameters set before Run
         self.ca.set_pv_value("VOLUME:SP", 100.00, wait=True)
         self.ca.set_pv_value("DIRECTION:SP", "Infuse", wait=True)
         self.ca.set_pv_value("RUN:SP", "Run")
@@ -175,9 +188,11 @@ class Aldn1000Tests(unittest.TestCase):
         self.ca.assert_that_pv_is("STATUS", expected_status_mode)
 
     @skip_if_recsim("Unable to use lewis backdoor in RECSIM")
-    def test_GIVEN_given_program_function_WHEN_program_function_changed_THEN_program_function_updated(self):
-        expected_function = 'INCR'
-        self._lewis.backdoor_set_on_device('program_function', expected_function)
+    def test_GIVEN_given_program_function_WHEN_program_function_changed_THEN_program_function_updated(
+        self,
+    ):
+        expected_function = "INCR"
+        self._lewis.backdoor_set_on_device("program_function", expected_function)
 
         self.ca.assert_that_pv_is("PROGRAM:FUNCTION", expected_function, timeout=2)
 
@@ -192,23 +207,23 @@ class Aldn1000Tests(unittest.TestCase):
 
     @skip_if_recsim("Requires emulator logic so not supported in RECSIM")
     def test_GIVEN_device_connected_WHEN_get_status_THEN_device_status_returned(self):
-        expected_status = 'Pumping Program Stopped'
+        expected_status = "Pumping Program Stopped"
 
         self.ca.assert_that_pv_is("STATUS", expected_status, timeout=2)
 
     @skip_if_recsim("Unable to use lewis backdoor in RECSIM")
     def test_GIVEN_device_not_connected_WHEN_get_error_THEN_alarm(self):
-        self.ca.assert_that_pv_alarm_is('STATUS', ChannelAccess.Alarms.NONE, timeout=5)
+        self.ca.assert_that_pv_alarm_is("STATUS", ChannelAccess.Alarms.NONE, timeout=5)
 
         with self._lewis.backdoor_simulate_disconnected_device():
             self.ca.set_pv_value("STATUS.PROC", 1)
             # we need quite a big timeout on next check, the pump has a 1 second reply timeout
             # so once disconnected DB may take a while to process previous commands
-            # before next status command can run             
-            self.ca.assert_that_pv_alarm_is('STATUS', ChannelAccess.Alarms.INVALID, timeout=30)
-            
+            # before next status command can run
+            self.ca.assert_that_pv_alarm_is("STATUS", ChannelAccess.Alarms.INVALID, timeout=30)
+
         # Assert alarms clear on reconnection
-        self.ca.assert_that_pv_alarm_is('STATUS', ChannelAccess.Alarms.NONE, timeout=5)
+        self.ca.assert_that_pv_alarm_is("STATUS", ChannelAccess.Alarms.NONE, timeout=5)
 
     @skip_if_recsim("Requires emulator logic so not supported in RECSIM")
     def test_GIVEN_pump_infusing_WHEN_pump_on_THEN_infused_volume_dispensed_increases(self):
@@ -224,7 +239,9 @@ class Aldn1000Tests(unittest.TestCase):
 
     @parameterized.expand([("Low limit", 1.0, "uL"), ("High limit", 15.0, "mL")])
     @skip_if_recsim("Requires emulator logic so not supported in RECSIM")
-    def test_GIVEN_diameter_change_WHEN_new_diamater_causes_units_changed_THEN_volume_EGU_units_updated(self, _, value, units):
+    def test_GIVEN_diameter_change_WHEN_new_diamater_causes_units_changed_THEN_volume_EGU_units_updated(
+        self, _, value, units
+    ):
         expected_units = units
         self.ca.set_pv_value("DIAMETER:SP", value)
 
@@ -241,8 +258,8 @@ class Aldn1000Tests(unittest.TestCase):
 
     @skip_if_recsim("Requires emulator")
     def test_GIVEN_non_default_state_WHEN_setup_run_THEN_default_state_entered(self):
-        #We will assert that a state change occurred, before running reset, 
-        #To make sure the emulator will correct itself back to the default state.
+        # We will assert that a state change occurred, before running reset,
+        # To make sure the emulator will correct itself back to the default state.
         self.ca.set_pv_value("VOLUME:SP", 10.00)
         self.ca.set_pv_value("RUN:SP", "Run")
         self.ca.assert_that_pv_is("STATUS", "Infusing")

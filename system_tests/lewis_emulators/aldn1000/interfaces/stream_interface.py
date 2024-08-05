@@ -3,49 +3,53 @@ from lewis.utils.command_builder import CmdBuilder
 from lewis.utils.constants import ETX, STX
 from lewis.utils.replies import conditional_reply
 
-if_input_error = conditional_reply('input_correct', STX + "01I?NA" + ETX)
+if_input_error = conditional_reply("input_correct", STX + "01I?NA" + ETX)
 if_connected = conditional_reply("connected")
 
 
 class Aldn1000StreamInterface(StreamInterface):
-
     in_terminator = "\r"
 
-    directions = 'INF|WDR|REV'
-    status_modes = 'I|W|S|P|T|U|A?R|A?S|A?T|A?E|A?O'
+    directions = "INF|WDR|REV"
+    status_modes = "I|W|S|P|T|U|A?R|A?S|A?T|A?E|A?O"
 
     def __init__(self):
         super(Aldn1000StreamInterface, self).__init__()
 
         self.commands = {
-                CmdBuilder(self.get_diameter).int().escape('DIA').eos().build(),
-                CmdBuilder(self.set_diameter).int().escape('DIA').float().eos().build(),
-                CmdBuilder(self.get_volume).int().escape('VOL').eos().build(),
-                CmdBuilder(self.set_volume).int().escape('VOL').float().eos().build(),
-                CmdBuilder(self.get_direction).int().escape('DIR').eos().build(),
-                CmdBuilder(self.set_direction).int().escape('DIR').arg(self.directions).eos().build(),
-                CmdBuilder(self.get_rate).int().escape('RAT').eos().build(),
-                CmdBuilder(self.set_rate).int().escape('RAT').float().string().eos().build(),
-                CmdBuilder(self.get_program_function).int().escape('FUN').eos().build(),
-                CmdBuilder(self.get_volume_dispensed).int().escape('DIS').eos().build(),
-                CmdBuilder(self.clear_volume).int().escape('CLD').arg("INF|WDR").eos().build(),
-                CmdBuilder(self.set_pump).int().arg("STP|RUN").eos().build(),
-                CmdBuilder(self.get_status).int().eos().build(),
+            CmdBuilder(self.get_diameter).int().escape("DIA").eos().build(),
+            CmdBuilder(self.set_diameter).int().escape("DIA").float().eos().build(),
+            CmdBuilder(self.get_volume).int().escape("VOL").eos().build(),
+            CmdBuilder(self.set_volume).int().escape("VOL").float().eos().build(),
+            CmdBuilder(self.get_direction).int().escape("DIR").eos().build(),
+            CmdBuilder(self.set_direction).int().escape("DIR").arg(self.directions).eos().build(),
+            CmdBuilder(self.get_rate).int().escape("RAT").eos().build(),
+            CmdBuilder(self.set_rate).int().escape("RAT").float().string().eos().build(),
+            CmdBuilder(self.get_program_function).int().escape("FUN").eos().build(),
+            CmdBuilder(self.get_volume_dispensed).int().escape("DIS").eos().build(),
+            CmdBuilder(self.clear_volume).int().escape("CLD").arg("INF|WDR").eos().build(),
+            CmdBuilder(self.set_pump).int().arg("STP|RUN").eos().build(),
+            CmdBuilder(self.get_status).int().eos().build(),
         }
 
     @if_input_error
     def basic_get_response(self, address, data=None, units=""):
         """It is expected that data inputs will be formatted using the format_data() method"""
-        return STX + '{address:02d}{status}{data}{units}'.format(address=address, status=self.device.state,
-                                                                 data=data, units=units) + ETX
+        return (
+            STX
+            + "{address:02d}{status}{data}{units}".format(
+                address=address, status=self.device.state, data=data, units=units
+            )
+            + ETX
+        )
 
     @if_input_error
     def basic_set_response(self, address):
-        return STX + '{:02d}{status}'.format(address, status=self.device.state) + ETX
+        return STX + "{:02d}{status}".format(address, status=self.device.state) + ETX
 
     @if_connected
     def format_data(self, float):
-        """ Restrict a float to only the first 5 characters
+        """Restrict a float to only the first 5 characters
 
         The device requires very specific formatting (0000. to .0000) for floats, so we restrict the float output to
         to the first 5 characters of the float converted to a string. Hackish, but the only way we found to
@@ -57,7 +61,7 @@ class Aldn1000StreamInterface(StreamInterface):
                 return (str): The first 5 characters of the input float.
 
         """
-        return '{formatted_value:.5s}'.format(formatted_value=str(float))
+        return "{formatted_value:.5s}".format(formatted_value=str(float))
 
     @if_connected
     def get_status(self, address):
@@ -81,8 +85,11 @@ class Aldn1000StreamInterface(StreamInterface):
 
     @if_connected
     def get_volume(self, address):
-        return self.basic_get_response(address, data=self.format_data(self.device.volume_target),
-                                       units=self.device.volume_units)
+        return self.basic_get_response(
+            address,
+            data=self.format_data(self.device.volume_target),
+            units=self.device.volume_units,
+        )
 
     @if_connected
     def set_volume(self, address, volume):
@@ -92,9 +99,11 @@ class Aldn1000StreamInterface(StreamInterface):
 
     @if_connected
     def get_volume_dispensed(self, address):
-        data = 'I{infused}W{withdrawn}{units}'.format(infused=self.format_data(self.device.volume_infused),
-                                                      withdrawn=self.format_data(self.device.volume_withdrawn),
-                                                      units=self.device.volume_units)
+        data = "I{infused}W{withdrawn}{units}".format(
+            infused=self.format_data(self.device.volume_infused),
+            withdrawn=self.format_data(self.device.volume_withdrawn),
+            units=self.device.volume_units,
+        )
         return self.basic_get_response(address, data=data)
 
     @if_connected
@@ -109,7 +118,9 @@ class Aldn1000StreamInterface(StreamInterface):
 
     @if_connected
     def get_rate(self, address):
-        return self.basic_get_response(address, self.format_data(self.device.rate), self.device.units)
+        return self.basic_get_response(
+            address, self.format_data(self.device.rate), self.device.units
+        )
 
     @if_connected
     def set_rate(self, address, rate, units):
