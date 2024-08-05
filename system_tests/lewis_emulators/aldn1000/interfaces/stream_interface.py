@@ -1,7 +1,6 @@
-from lewis.adapters.stream import StreamInterface, Cmd
-
+from lewis.adapters.stream import StreamInterface
 from lewis.utils.command_builder import CmdBuilder
-from lewis.utils.constants import STX, ETX
+from lewis.utils.constants import ETX, STX
 from lewis.utils.replies import conditional_reply
 
 if_input_error = conditional_reply('input_correct', STX + "01I?NA" + ETX)

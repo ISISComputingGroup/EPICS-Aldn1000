@@ -1,9 +1,17 @@
-from collections import OrderedDict
-from .states import InfusingState, WithdrawingState, PumpingProgramStoppedState, PumpingProgramPausedState, \
-    PausePhaseState, UserWaitState
-from lewis.devices import StateMachineDevice
-from threading import RLock
 import functools
+from collections import OrderedDict
+from threading import RLock
+
+from lewis.devices import StateMachineDevice
+
+from .states import (
+    InfusingState,
+    PausePhaseState,
+    PumpingProgramPausedState,
+    PumpingProgramStoppedState,
+    UserWaitState,
+    WithdrawingState,
+)
 
 states = OrderedDict([
     ('I', InfusingState()),
