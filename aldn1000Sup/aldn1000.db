@@ -440,6 +440,19 @@ record(mbbi, "$(P)PROGRAM:FUNCTION")
     field(SDIS, "$(P)DISABLE")
 }
 
+# set basic mode (as opposed to safe mode)
+record(bo, "$(P)_SET_BASIC_MODE")
+{
+    field(DESC, "Set basic comm mode")
+    field(SCAN, "Passive")
+    field(DTYP, "stream")
+
+    field(OUT,  "@aldn1000.proto setBasicMode $(PORT)")
+#    field(OUT,  "@aldn1000.proto setBasicModeEx($(P),ID) $(PORT)")
+    field(PINI, "YES")
+}
+
+
 ### SIMULATION RECORDS ###
 
 record(bo,"$(P)SIM:STOP:SP")

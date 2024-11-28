@@ -112,3 +112,20 @@ getProgFunc {
     in STX "%*" $id "%*" $status_modes "%{RAT|INC|DEC}";
     @mismatch { mismatch_catcher; }
 }
+
+# change back from safe mode to basic mode
+# probably assumes pump address 0
+setBasicMode {
+    OutTerminator = ETX;
+    out STX 0x08 "SAF0" 0x55 0x43;
+}
+
+# more complex version using address
+# stream device has 3 implementation of ccitt16 checksum, need to check which works here
+# 0x55 0x43 above are checksum of "SAF0" so may be able to use that to test which stream device checksum is appropriate
+# below we need to checksum the address followed by SAF0
+# use 02d for address so it is always 2 bytes, this is because the item after STX is length and it allows us to fix at 0xA 
+setBasicModeEx {
+    OutTerminator = ETX;
+    out STX 0xA "%(\$1\$2)02d" "SAF0" %2<ccitt16>;
+}
